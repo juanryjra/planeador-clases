@@ -173,8 +173,8 @@ REGLAS PARA EL OBJETIVO DE CLASE (usa Taxonomía de Bloom):
 - Declara explícitamente el nivel de Bloom usado.
 
 REGLAS PARA LA COMPETENCIA:
-- Toda competencia tiene tres dimensiones: Saber (conocimiento conceptual), Saber hacer (habilidad/aplicación) y Saber ser (actitud o valor).
-- Desarrolla las TRES dimensiones con contenido específico y concreto relacionado directamente con el tema de la clase. Nunca dejes una dimensión vacía, genérica o como simple repetición de las otras dos.
+- Toda competencia tiene tres dimensiones igual de importantes: Saber (conocimiento conceptual), Saber hacer (habilidad/aplicación) y Saber ser (actitud o valor).
+- Las TRES dimensiones deben aparecer cada una en su propia línea, con contenido específico, concreto y distinto entre sí, relacionado directamente con el tema de la clase. Ninguna dimensión puede quedar vacía, genérica, copiada de otra, ni tratada como secundaria frente a las demás.
 - El indicador de desempeño debe ser observable y evaluable.
 
 REGLAS PARA LA PREGUNTA TIPO PRUEBA SABER (sección obligatoria, nunca la omitas ni la acortes):
@@ -193,9 +193,11 @@ FORMATO DE SALIDA (markdown estricto, sin saludos, sin introducciones, sin texto
 **Nivel de Bloom:** [nivel]
 
 ## Competencia e indicador de desempeño
-**Competencia (Saber):** [...]
+**Competencia:** [definición integradora de la competencia que se trabaja en esta clase]
+- **Saber (conocimiento):** [contenido conceptual específico del tema]
+- **Saber hacer (habilidad):** [acción concreta que el estudiante realiza con ese conocimiento]
+- **Saber ser (actitud/valor):** [actitud o valor que se evidencia en la clase]
 **Indicador de desempeño:** [...]
-**Dimensiones:** Saber: [...] | Saber hacer: [...] | Saber ser: [...]
 
 ## Momentos de la clase
 ### Activación ([X] min)
@@ -275,8 +277,7 @@ function PlaneacionGenerator() {
   const [grado, setGrado] = useState("");
   const [horasSemana, setHorasSemana] = useState(1);
   const [duracion, setDuracion] = useState(60);
-  const [temas, setTemas] = useState([{ value: "", custom: "" }]);
-  const [recursos, setRecursos] = useState("");
+  const [temas, setTemas] = useState([{ value: "", custom: "", recursos: "" }]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [planes, setPlanes] = useState([]);
@@ -288,7 +289,7 @@ function PlaneacionGenerator() {
   const resizeTemas = (n) => {
     setTemas((prev) => {
       const arr = [...prev];
-      while (arr.length < n) arr.push({ value: "", custom: "" });
+      while (arr.length < n) arr.push({ value: "", custom: "", recursos: "" });
       arr.length = Math.max(n, 0);
       return arr;
     });
@@ -298,12 +299,12 @@ function PlaneacionGenerator() {
     setAsignatura(val);
     setGrado("");
     resizeTemas(numSesiones);
-    setTemas((prev) => prev.map(() => ({ value: "", custom: "" })));
+    setTemas((prev) => prev.map(() => ({ value: "", custom: "", recursos: "" })));
     setPlanes([]); setError("");
   };
   const handleGradoChange = (val) => {
     setGrado(val);
-    setTemas((prev) => prev.map(() => ({ value: "", custom: "" })));
+    setTemas((prev) => prev.map(() => ({ value: "", custom: "", recursos: "" })));
     setPlanes([]); setError("");
   };
   const handleHorasChange = (val) => {
@@ -321,14 +322,14 @@ function PlaneacionGenerator() {
   );
   const puedeGenerar = asignatura && grado && numSesiones > 0 && Number(duracion) > 0 && temasCompletos && !loading;
 
-  const callDia = async (i, temaFinal) => {
+  const callDia = async (i, temaFinal, recursosDia) => {
     const userPrompt = `Construye la planeación de clase para el Día ${i + 1} de ${numSesiones} sesiones semanales de esta asignatura.
 - Asignatura: ${asignatura}
 - Grado: ${grado}°
 - Tema específico de esta clase: ${temaFinal}
 - Duración de esta clase: ${duracion} minutos (definida libremente por el docente)
 - Horas semanales totales dedicadas a esta asignatura: ${horasSemana} (definidas libremente por el docente)
-- Recursos que el docente planea utilizar (úsalos como contexto si aplica, no los listes en sección aparte): ${recursos || "el libro de texto y el tablero"}`;
+- Recursos que el docente planea utilizar específicamente en esta clase (úsalos como contexto si aplica, no los listes en sección aparte): ${recursosDia || "el libro de texto y el tablero"}`;
 
     const response = await fetch("/api/generar", {
       method: "POST",
@@ -345,14 +346,16 @@ function PlaneacionGenerator() {
   const handleGenerate = async () => {
     setLoading(true); setError(""); setPlanes([]); setCopiedIndex(null);
     const total = numSesiones;
+    const diasSnapshot = temas.slice(0, total);
     const results = await Promise.allSettled(
-      temas.slice(0, total).map((t, i) => callDia(i, t.value === OTRO ? t.custom : t.value))
+      diasSnapshot.map((t, i) => callDia(i, t.value === OTRO ? t.custom : t.value, t.recursos))
     );
     const newPlanes = results.map((r, i) => {
-      const temaFinal = temas[i].value === OTRO ? temas[i].custom : temas[i].value;
+      const temaFinal = diasSnapshot[i].value === OTRO ? diasSnapshot[i].custom : diasSnapshot[i].value;
+      const recursosFinal = diasSnapshot[i].recursos;
       return r.status === "fulfilled"
-        ? { dia: i + 1, tema: temaFinal, content: r.value }
-        : { dia: i + 1, tema: temaFinal, error: true };
+        ? { dia: i + 1, tema: temaFinal, recursos: recursosFinal, content: r.value }
+        : { dia: i + 1, tema: temaFinal, recursos: recursosFinal, error: true };
     });
     setPlanes(newPlanes);
     if (results.some((r) => r.status === "rejected")) {
@@ -363,18 +366,19 @@ function PlaneacionGenerator() {
 
   const handleRetryDia = async (i) => {
     setPlanes((prev) => prev.map((p, idx) => (idx === i ? { ...p, retrying: true } : p)));
-    const temaFinal = temas[i].value === OTRO ? temas[i].custom : temas[i].value;
+    const temaFinal = planes[i].tema;
+    const recursosFinal = planes[i].recursos;
     try {
-      const content = await callDia(i, temaFinal);
-      setPlanes((prev) => prev.map((p, idx) => (idx === i ? { dia: i + 1, tema: temaFinal, content } : p)));
+      const content = await callDia(i, temaFinal, recursosFinal);
+      setPlanes((prev) => prev.map((p, idx) => (idx === i ? { dia: i + 1, tema: temaFinal, recursos: recursosFinal, content } : p)));
     } catch {
-      setPlanes((prev) => prev.map((p, idx) => (idx === i ? { dia: i + 1, tema: temaFinal, error: true } : p)));
+      setPlanes((prev) => prev.map((p, idx) => (idx === i ? { dia: i + 1, tema: temaFinal, recursos: recursosFinal, error: true } : p)));
     }
   };
 
   const handleCopyDia = async (i) => {
     const p = planes[i];
-    const fullText = `${p.content}\n\n## Recursos sugeridos por el docente\n${recursos || "No se especificaron recursos adicionales; se sugiere el libro de texto y el tablero."}`;
+    const fullText = `${p.content}\n\n## Recursos sugeridos por el docente\n${p.recursos || "No se especificaron recursos adicionales; se sugiere el libro de texto y el tablero."}`;
     try {
       await navigator.clipboard.writeText(fullText);
       setCopiedIndex(i);
@@ -389,8 +393,7 @@ function PlaneacionGenerator() {
     setGrado("");
     setHorasSemana(1);
     setDuracion(60);
-    setTemas([{ value: "", custom: "" }]);
-    setRecursos("");
+    setTemas([{ value: "", custom: "", recursos: "" }]);
     setPlanes([]); setError(""); setCopiedIndex(null);
   };
 
@@ -465,9 +468,9 @@ function PlaneacionGenerator() {
 
               {numSesiones > 0 && (
                 <div className="space-y-3">
-                  <p className="text-xs font-medium text-slate-300">5. Tema para cada clase de la semana</p>
+                  <p className="text-xs font-medium text-slate-300">5. Tema y recursos para cada clase de la semana</p>
                   {temas.slice(0, numSesiones).map((t, i) => (
-                    <div key={i} className="bg-slate-800/50 rounded-lg p-2.5">
+                    <div key={i} className="bg-slate-800/50 rounded-lg p-2.5 space-y-2">
                       <label className="text-xs text-emerald-300 font-semibold mb-1 block">Día {i + 1}</label>
                       <select
                         value={t.value}
@@ -488,26 +491,27 @@ function PlaneacionGenerator() {
                           value={t.custom}
                           onChange={(e) => updateTema(i, "custom", e.target.value)}
                           placeholder="Escribe el tema específico de esta clase"
-                          className="w-full mt-2 bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 placeholder:text-slate-500"
+                          className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 placeholder:text-slate-500"
                         />
+                      )}
+                      {t.value && (
+                        <div>
+                          <label className="text-xs font-medium text-slate-400 mb-1 block flex items-center gap-1">
+                            <Wrench className="w-3.5 h-3.5" /> Recursos para este día
+                          </label>
+                          <textarea
+                            value={t.recursos}
+                            onChange={(e) => updateTema(i, "recursos", e.target.value)}
+                            placeholder="Ej: libro Santillana Compartir, video corto, material concreto, guía impresa, plataforma Pleno..."
+                            rows={2}
+                            className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 placeholder:text-slate-500 resize-none"
+                          />
+                        </div>
                       )}
                     </div>
                   ))}
                 </div>
               )}
-
-              <div>
-                <label className="text-xs font-medium text-slate-300 mb-1 block flex items-center gap-1">
-                  <Wrench className="w-3.5 h-3.5" /> 6. Recursos que piensas utilizar
-                </label>
-                <textarea
-                  value={recursos}
-                  onChange={(e) => setRecursos(e.target.value)}
-                  placeholder="Ej: libro Santillana Compartir, video corto, material concreto, guía impresa, plataforma Pleno..."
-                  rows={2}
-                  className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 placeholder:text-slate-500 resize-none"
-                />
-              </div>
             </>
           )}
 
@@ -574,7 +578,7 @@ function PlaneacionGenerator() {
                 <div className="mt-3 pt-3 border-t border-white/10">
                   <h2 className="text-lg font-bold text-emerald-300 mb-2">Recursos sugeridos por el docente</h2>
                   <p className="text-sm text-slate-200 leading-relaxed">
-                    {recursos || "No se especificaron recursos adicionales; se sugiere el libro de texto y el tablero."}
+                    {p.recursos || "No se especificaron recursos adicionales; se sugiere el libro de texto y el tablero."}
                   </p>
                 </div>
               </>
