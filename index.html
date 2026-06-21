@@ -1,0 +1,560 @@
+import { useState } from "react";
+import { Sparkles, Loader2, Copy, Check, AlertCircle, RotateCcw, Clock, Wrench, RefreshCw } from "lucide-react";
+
+const CONTENIDOS = {
+  "Ciencias": {
+    1: [
+      { titulo: "Las características de los seres vivos", subtemas: ["Los seres vivos y los seres no vivos", "Los seres vivos de mi entorno (plantas y animales)", "Soy un ser vivo: las partes de tu cuerpo", "Tu cuerpo cambia / los hijos se parecen a sus padres", "¿Cómo percibo mi entorno? Los cinco sentidos", "Cuido mis sentidos"] },
+      { titulo: "Los materiales de mis juguetes", subtemas: ["Los tipos de materiales: naturales y artificiales", "¿Cómo diferencio los materiales? (dureza, flexibilidad, elasticidad, transparencia)", "Los usos de los materiales", "Los estados de los materiales: líquidos, gases, sólidos", "Los materiales cambian: evaporación, solidificación, fusión, condensación"] },
+      { titulo: "El hábitat de los seres vivos", subtemas: ["El hábitat de las plantas", "El hogar de los animales (acuáticos, agua dulce y salada)", "Las necesidades de los seres vivos", "Los beneficios que nos brindan los seres vivos", "La Tierra y el Sol: el día y la noche"] },
+      { titulo: "¡La energía que me rodea!", subtemas: ["Las fuentes de energía renovables y no renovables", "La luz y el sonido", "Los colores de la luz / los cuerpos y la luz", "El calor: ¿de dónde viene?"] },
+    ],
+    2: [
+      { titulo: "Los seres vivos", subtemas: ["Los colores de los seres vivos (plantas y animales)", "El ciclo de vida: metamorfosis", "Los hijos se parecen a sus padres: la herencia", "El cuerpo humano: músculos y huesos", "Los cambios de tu cuerpo"] },
+      { titulo: "Los materiales y su estado en la cocina", subtemas: ["Los materiales: sustancias, naturales y artificiales", "Las propiedades de los objetos", "Los estados de los materiales: sólido, líquido, gaseoso", "Los alimentos cambian de estado", "El agua en la naturaleza cambia de estado"] },
+      { titulo: "El hogar de los seres vivos", subtemas: ["Los factores bióticos y abióticos", "Los ecosistemas terrestres y acuáticos", "Las necesidades de las plantas y los animales", "Los seres vivos se adaptan", "Herbívoros, carnívoros, omnívoros y carroñeros", "La Tierra y la Luna"] },
+      { titulo: "La fuerza y la energía me enseñan a transitar", subtemas: ["La fuerza: deforma y transforma", "La posición y el desplazamiento", "El calor y el sonido", "Tono, timbre e intensidad del sonido"] },
+    ],
+    3: [
+      { titulo: "Los seres vivos son únicos", subtemas: ["Las funciones vitales y el ciclo de vida", "Las células", "La clasificación de los seres vivos: dominios y reinos", "Las plantas y los animales: vertebrados e invertebrados", "Las partes de tu cuerpo y su función"] },
+      { titulo: "La materia y sus transformaciones", subtemas: ["Las propiedades generales y específicas de la materia", "Las sustancias puras, combinaciones y mezclas", "La separación de mezclas", "Los estados de la materia: sólido, líquido, gaseoso, plasma", "Los cambios físicos y químicos / el ciclo del agua"] },
+      { titulo: "Los componentes de los ecosistemas", subtemas: ["La organización de los ecosistemas", "Los factores bióticos y abióticos", "La diversidad y las regiones naturales de Colombia", "Las relaciones intraespecíficas e interespecíficas"] },
+      { titulo: "La energía de los medios de transporte", subtemas: ["La eficiencia energética y las transformaciones de la energía", "La luz: formación de imágenes y refracción", "El sonido: propagación y eco", "La fuerza y el movimiento"] },
+    ],
+    4: [
+      { titulo: "Los seres vivos", subtemas: ["Los niveles de organización de la vida", "La célula: procariota, eucariota, vegetal y animal", "Los tejidos: nervioso, muscular, conectivo, epitelial", "La clasificación de los seres vivos: dominios y reinos"] },
+      { titulo: "Todo lo que nos rodea es materia", subtemas: ["Los elementos químicos y las propiedades de la materia", "Los estados de la materia: sólido, líquido, gaseoso, plasma", "Elementos, compuestos y mezclas homogéneas/heterogéneas", "Las técnicas de separación de mezclas"] },
+      { titulo: "Los ecosistemas", subtemas: ["Los ecosistemas acuáticos y terrestres", "Los biomas: tundra, sabana, desierto, bosques", "Las relaciones tróficas: cadenas, redes y pirámides", "La organización del universo y el sistema solar"] },
+      { titulo: "La fuerza y la energía en el espacio", subtemas: ["Los tipos de fuerza y las máquinas simples", "La fuerza y el movimiento", "El movimiento de los astros: día, noche y fases de la Luna", "El estudio de los astros: telescopios y constelaciones"] },
+    ],
+    5: [
+      { titulo: "Las funciones de los seres vivos", subtemas: ["Las funciones celulares: nutrición y reproducción", "Los tejidos, órganos y sistemas", "Las funciones de relación en los humanos: sentidos y sistema nervioso", "La nutrición humana: digestión, absorción y circulación", "La reproducción humana"] },
+      { titulo: "La materia en nuestras vidas", subtemas: ["La clasificación de la materia: elementos, compuestos, mezclas", "Los métodos de separación de mezclas (filtración, decantación, destilación)", "Los estados de la materia y los cambios físicos/químicos", "La naturaleza eléctrica de la materia"] },
+      { titulo: "El equilibrio en los ecosistemas", subtemas: ["La energía en los ecosistemas: cadenas y pirámides tróficas", "Los ciclos del carbono, oxígeno, nitrógeno y agua", "El equilibrio ecológico y la sucesión ecológica", "Las capas de la Tierra y sus movimientos"] },
+      { titulo: "La fuerza, la electricidad y el magnetismo", subtemas: ["La fricción y los efectos de las fuerzas", "Las cargas eléctricas y los materiales conductores/aislantes", "Los circuitos eléctricos en serie y en paralelo", "El magnetismo y el campo magnético terrestre"] },
+    ],
+  },
+  "Lenguaje": {
+    1: [
+      { titulo: "Observar y comprender", subtemas: ["La descripción: mostrar o contar", "Producción textual: el folleto", "Expresión oral: el show and tell", "Comprensión e interpretación textual: la anécdota"] },
+      { titulo: "Mil maneras de contar una historia", subtemas: ["La narración y sus ingredientes", "Producción textual: el texto instructivo", "Expresión oral: la mesa redonda", "Comprensión e interpretación textual: la receta"] },
+      { titulo: "Animales que cuentan historias", subtemas: ["La fábula y sus protagonistas", "Producción textual: el diálogo", "Expresión oral: la conversación y la ética de la comunicación", "Comprensión e interpretación textual: la noticia"] },
+      { titulo: "Una orquesta de palabras", subtemas: ["La poesía: pistas para leerla", "Producción textual: la carta", "Expresión oral: declamar un poema", "Comprensión e interpretación textual: el diario personal"] },
+    ],
+    2: [
+      { titulo: "Contando historias", subtemas: ["El cuento fantástico", "Producción textual: el itinerario", "Expresión oral: las opiniones", "Comprensión e interpretación textual: la carta personal"] },
+      { titulo: "Relatos con piel de animal", subtemas: ["La fábula y los cuentos de animales", "Producción textual: la descripción", "Expresión oral: la onomatopeya", "Comprensión e interpretación textual: el texto instructivo"] },
+      { titulo: "Historias con voz y cuerpo", subtemas: ["El teatro: del texto a la acción", "Producción textual: rimas y coplas", "Expresión oral: la entonación", "Comprensión e interpretación textual: el aviso clasificado"] },
+      { titulo: "Palabras que cantan", subtemas: ["La poesía verso a verso", "Producción textual: el caligrama", "Expresión oral: la retahíla", "Comprensión e interpretación textual: las retahílas"] },
+    ],
+    3: [
+      { titulo: "Otros mundos posibles", subtemas: ["Narraciones fantásticas y realistas", "Producción textual: el resumen", "Expresión oral: la intención y la entonación", "Comprensión e interpretación textual: el plano"] },
+      { titulo: "Creencias y costumbres", subtemas: ["Mitos y leyendas", "Producción textual: la crónica", "Expresión oral: los signos de puntuación", "Comprensión e interpretación textual: el texto descriptivo"] },
+      { titulo: "Palabras, gestos y movimientos", subtemas: ["El teatro: del papel a la escena", "Producción textual: el texto instructivo", "Expresión oral: la exposición oral", "Lectura crítica del texto instructivo"] },
+      { titulo: "Ideas, sensaciones y sentimientos", subtemas: ["La poesía: sentimiento, ritmo y tradición", "Producción textual: la poesía", "Expresión oral: la lectura poética", "Comprensión e interpretación textual: la historieta"] },
+    ],
+    4: [
+      { titulo: "Oralidad, memoria y pasado", subtemas: ["Los cuentos populares", "Producción textual: el relato histórico", "Expresión oral: show and tell", "Comprensión e interpretación textual: el cuadro de costumbres"] },
+      { titulo: "Detectives y textos misteriosos", subtemas: ["El cuento policíaco", "Producción textual: la noticia", "Expresión oral: la entrevista", "Lectura crítica: el artículo de divulgación científica"] },
+      { titulo: "Palabras y sonidos", subtemas: ["La poesía: musicalidad y figuras literarias", "Producción textual: formas de escribir poesía", "Expresión oral: la anécdota", "Lectura crítica: la ficha botánica y zoológica"] },
+      { titulo: "Palabras que cantan (teatro)", subtemas: ["El teatro: reír hasta llorar y llorar hasta reír", "Producción textual: el cartel", "Expresión oral: el debate", "Lectura crítica: la infografía"] },
+    ],
+    5: [
+      { titulo: "Historias espeluznantes", subtemas: ["El cuento de terror y el policíaco", "Producción textual: el anuncio publicitario", "Expresión oral: la exposición", "Lectura crítica: la etiqueta de los alimentos"] },
+      { titulo: "Historias con personajes y personajes con historias", subtemas: ["La novela", "Producción textual: el texto argumentativo", "Expresión oral: el debate", "Lectura crítica: redes sociales y blog personal"] },
+      { titulo: "Palabras, imágenes y sonidos", subtemas: ["La poesía: figuras literarias", "Producción textual: el reportaje", "Expresión oral: la encuesta", "Lectura crítica: el artículo de opinión"] },
+      { titulo: "El teatro de la vida", subtemas: ["El teatro: texto, montaje y escena", "Producción textual: el monólogo", "Expresión oral: el volumen y la entonación", "Lectura crítica: el meme"] },
+    ],
+  },
+  "Matemáticas": {
+    1: [
+      { titulo: "Vamos a jugar", subtemas: ["Los números hasta 99: orden y números ordinales", "Las cualidades de los objetos", "Líneas, longitud y relaciones espaciales"] },
+      { titulo: "Cuidemos nuestro entorno", subtemas: ["Adición y sustracción hasta 99", "Los diagramas estadísticos: pictogramas y barras", "Las figuras planas: cuadrado, triángulo, círculo"] },
+      { titulo: "De paseo por la finca", subtemas: ["Los números hasta 999: la centena", "Combinaciones", "Los cuerpos geométricos, capacidad y masa"] },
+      { titulo: "Los eventos que no te puedes perder", subtemas: ["Los números hasta 9.999", "Seguro - imposible", "Figuras congruentes y simétricas, traslación y medida del tiempo"] },
+    ],
+    2: [
+      { titulo: "El mundo de las mascotas", subtemas: ["Adición y sustracción hasta 9.999 (propiedades conmutativa y asociativa)", "Tablas de conteo", "Cuerpos geométricos y medidas: volumen, gramo y kilogramo"] },
+      { titulo: "Todos necesitamos transportarnos", subtemas: ["La multiplicación: tablas y términos", "Diagramas estadísticos: barras, puntos, pictogramas", "Líneas paralelas y perpendiculares, el perímetro"] },
+      { titulo: "Mi casa un lugar acogedor", subtemas: ["Números hasta 99.999 y noción de ecuación", "Técnicas de conteo: combinaciones y permutaciones", "Figuras planas: ángulos, triángulo, circunferencia, área"] },
+      { titulo: "Nos fuimos de paseo", subtemas: ["La división: repartos equitativos y noción de fracción", "Noción de probabilidad: evento seguro e imposible", "Movimientos en el plano: traslación, simetría y giros", "Medida del tiempo: hora, calendario"] },
+    ],
+    3: [
+      { titulo: "Las matemáticas en los olímpicos", subtemas: ["Los números hasta 999.999 y los números romanos", "Caracterización de variables: población, muestra, tablas de frecuencias", "Líneas, longitud y perímetro de figuras planas"] },
+      { titulo: "Un recorrido por el Amazonas", subtemas: ["La multiplicación: propiedades conmutativa, asociativa y distributiva", "Representación y organización de datos", "Los ángulos y los polígonos", "Área de rectángulos"] },
+      { titulo: "Del campo a tu mesa", subtemas: ["La división: relación con multiplicación y sustracción", "Divisores y criterios de divisibilidad", "Técnicas de conteo y probabilidad", "Los cuerpos geométricos: volumen y capacidad"] },
+      { titulo: "Chef por un tiempo", subtemas: ["Fracciones: de un conjunto, equivalentes, adición y sustracción", "Técnicas de conteo: combinación y permutación", "Movimientos en el plano: reflexión, traslación, rotación"] },
+    ],
+    4: [
+      { titulo: "El mundo de los videojuegos", subtemas: ["Números naturales hasta millones, números romanos y ecuaciones", "Tablas de doble entrada y diagramas de barras agrupadas", "Los ángulos y los polígonos: cuadriláteros"] },
+      { titulo: "Vamos a un parque temático", subtemas: ["Multiplicación y división: múltiplos, m.c.m. y M.C.D., números primos", "Diagramas estadísticos: de líneas y circular, la moda", "Triángulos: longitud, perímetro y área"] },
+      { titulo: "Rompiendo esquemas del mundo", subtemas: ["Fracciones propias, impropias, equivalentes y sus operaciones", "Técnicas de conteo: combinaciones y permutaciones", "Movimientos en el plano: traslación, rotación, ampliación y reducción", "Medida del tiempo y rapidez"] },
+      { titulo: "Todos somos científicos", subtemas: ["Números decimales: décimas, centésimas y operaciones", "Experimentos aleatorios y probabilidad", "Cuerpos geométricos: redondos y poliedros", "Unidades de volumen, capacidad, masa y temperatura"] },
+    ],
+    5: [
+      { titulo: "Viaje al espacio exterior", subtemas: ["Múltiplos, divisores, números primos, potenciación y radicación", "Población, muestra y caracterización de variables: la encuesta", "El plano cartesiano y los ángulos"] },
+      { titulo: "Arte por todas partes", subtemas: ["Fracciones: representación, números mixtos, operaciones y porcentaje", "Representación de datos: frecuencias, diagramas circulares y de barras", "Los polígonos: clasificación, perímetro y área"] },
+      { titulo: "Nos vamos de compras", subtemas: ["Números decimales: valor posicional, operaciones y porcentaje", "Las medidas de tendencia central: moda, media y mediana", "Circunferencia, semejanza y congruencia", "Medidas de temperatura y rapidez"] },
+      { titulo: "Los beneficios de la lluvia", subtemas: ["Proporcionalidad directa e inversa, razones y regla de tres", "Experimentos aleatorios y probabilidad", "Mapas y escalas", "Cuerpos geométricos: área, volumen y capacidad"] },
+    ],
+  },
+  "Sociales": {
+    1: [
+      { titulo: "Soy una persona valiosa que pertenece a una familia", subtemas: ["Soy alguien muy especial: derechos y deberes", "Me gusta mi familia: responsabilidades y convivencia"] },
+      { titulo: "Aprendo a conocer los lugares donde estudio y donde vivo", subtemas: ["La orientación y las normas de mi colegio", "¿Cómo es mi lugar de vivienda? Tipos de vivienda y servicios públicos"] },
+      { titulo: "El problema de la contaminación y la convivencia en mi barrio", subtemas: ["La contaminación del aire, el agua y el ruido", "El reciclaje: las 4 erres", "Mis vecinos del barrio y la convivencia"] },
+      { titulo: "De viaje por mi país", subtemas: ["¿Cómo está conformado mi país? Riquezas naturales", "La historia de mi país: fiestas patrias y símbolos"] },
+    ],
+    2: [
+      { titulo: "La orientación y los espacios públicos", subtemas: ["Aprendamos a orientarnos: mapas y planos", "La importancia de los espacios públicos y señales de seguridad"] },
+      { titulo: "Nuestra vida en la comunidad", subtemas: ["Las funciones de los miembros de mi comunidad", "Conozcamos nuestros municipios: las autoridades"] },
+      { titulo: "Los recursos naturales de nuestro mundo", subtemas: ["Nuestros paisajes y los cambios de clima", "Los recursos naturales de mi entorno: agua, flora y fauna"] },
+      { titulo: "El tiempo y la historia de mi país", subtemas: ["Las cosas cambian a lo largo del tiempo: la línea de tiempo", "Los períodos históricos de Colombia y las fiestas patrias"] },
+    ],
+    3: [
+      { titulo: "Planeta azul, relieves y climas", subtemas: ["El relieve continental, costero y submarino", "El clima y el relieve colombiano"] },
+      { titulo: "Derechos, deberes y nuestros antepasados indígenas", subtemas: ["Normas, deberes y derechos / la organización municipal", "Nuestros antepasados indígenas: muiscas y taironas"] },
+      { titulo: "Nuestros recursos naturales y las actividades económicas del país", subtemas: ["Recursos naturales renovables y no renovables", "Las actividades productivas y los sectores económicos en Colombia"] },
+      { titulo: "El encuentro con un mundo desconocido", subtemas: ["La llegada de los conquistadores europeos a América", "El intercambio cultural entre europeos y americanos"] },
+    ],
+    4: [
+      { titulo: "Nuestro país en el mundo y en el universo", subtemas: ["Los límites geográficos y la división política de Colombia", "El sistema solar y las capas de la Tierra"] },
+      { titulo: "Gobiernos y administración colonial", subtemas: ["La democracia: las tres ramas del poder público", "La Colonia: el virreinato de la Nueva Granada"] },
+      { titulo: "Recursos y regiones naturales de Colombia", subtemas: ["Las regiones naturales de Colombia", "La economía: bienes, servicios y la canasta familiar"] },
+      { titulo: "Tus deberes, tus derechos y el nacimiento de la república", subtemas: ["Nuestros deberes y derechos: los derechos de los niños", "El nacimiento de Colombia: independencia y Simón Bolívar"] },
+    ],
+    5: [
+      { titulo: "El relieve y la población nacional", subtemas: ["El relieve y la biodiversidad de Colombia", "Colombia: una nación pluriétnica y multicultural"] },
+      { titulo: "La formación de nuestra nación y los derechos humanos", subtemas: ["De la Colonia a la República: la independencia", "La Constitución y los derechos humanos"] },
+      { titulo: "La economía de nuestro país", subtemas: ["Los sectores económicos: primario, secundario, terciario, cuaternario", "Las actividades económicas por regiones"] },
+      { titulo: "Colombia, un país de grandes cambios", subtemas: ["Colombia durante el siglo XX", "De la guerra a la paz: la historia reciente de Colombia"] },
+    ],
+  },
+};
+
+const OTRO = "__otro__";
+
+const SYSTEM_PROMPT = `Eres un experto en diseño curricular por competencias para el sistema educativo colombiano. Tu marco de referencia es: los Estándares Básicos de Competencias y los Derechos Básicos de Aprendizaje (DBA), las competencias evaluadas en las Pruebas Saber del ICFES, la metodología de aprendizaje activo de Santillana Compartir, y la plataforma Pleno como medio de evaluación formativa.
+
+REGLAS PARA EL OBJETIVO DE CLASE (usa Taxonomía de Bloom):
+- En grados 1° a 3°: usa verbos de los niveles Recordar, Comprender y Aplicar (identificar, describir, clasificar, comparar, resolver, representar).
+- En grados 4° y 5°: incluye también Analizar y Evaluar cuando sea pertinente (analizar, argumentar, formular, proponer, evaluar, justificar).
+- El objetivo describe lo que el ESTUDIANTE logrará, nunca lo que hará el docente.
+- Declara explícitamente el nivel de Bloom usado.
+
+REGLAS PARA LA COMPETENCIA:
+- Toda competencia tiene tres dimensiones: Saber (conocimiento conceptual), Saber hacer (habilidad/aplicación) y Saber ser (actitud o valor). Nómbralas brevemente.
+- El indicador de desempeño debe ser observable y evaluable.
+
+REGLAS PARA LA PREGUNTA TIPO PRUEBA SABER:
+- Redacta primero un contexto o situación breve relacionada con el tema trabajado (como en las pruebas ICFES), con un nivel de dificultad medio, acorde al grado.
+- Luego el enunciado de la pregunta y 4 opciones en lista con guion (a, b, c, d).
+- Marca la opción correcta agregando " (Respuesta correcta)" entre paréntesis al final de esa opción. Las demás opciones NO llevan ninguna marca.
+- Después, en la sección "Análisis para el docente", explica de forma clara y práctica por qué esa opción es la correcta y cómo se llega a ella paso a paso, y menciona brevemente por qué las otras tres son distractores.
+
+IMPORTANTE: No incluyas ninguna sección de "Recursos" en tu respuesta; el sistema la agrega automáticamente fuera de tu texto. Si es pertinente, puedes mencionar los recursos indicados por el docente dentro de Estructuración o Práctica, pero no los listes en una sección aparte.
+
+FORMATO DE SALIDA (markdown estricto, sin saludos, sin introducciones, sin texto fuera de esta estructura, máximo ~480 palabras en total):
+
+## Objetivo de la clase
+[una frase con verbo de acción]
+**Nivel de Bloom:** [nivel]
+
+## Competencia e indicador de desempeño
+**Competencia (Saber):** [...]
+**Indicador de desempeño:** [...]
+**Dimensiones:** Saber: [...] | Saber hacer: [...] | Saber ser: [...]
+
+## Momentos de la clase
+### Activación ([X] min)
+[actividad breve]
+### Estructuración ([X] min)
+[actividad breve, mencionando el uso del libro]
+### Práctica ([X] min)
+[actividad breve]
+### Transferencia y cierre ([X] min)
+[actividad breve]
+
+(La suma de los minutos de los 4 momentos debe ser igual a la duración total de la clase indicada)
+
+## Evaluación formativa en Pleno
+[estrategia concreta]
+
+## Pregunta tipo Prueba Saber
+[contexto/situación breve]
+[enunciado de la pregunta]
+- a) [opción]
+- b) [opción]
+- c) [opción]
+- d) [opción]
+
+## Análisis para el docente
+[explicación clara, práctica y paso a paso]`;
+
+function renderInline(text) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) =>
+    part.startsWith("**") && part.endsWith("**") ? (
+      <strong key={i} className="text-white font-semibold">{part.slice(2, -2)}</strong>
+    ) : (
+      <span key={i}>{part}</span>
+    )
+  );
+}
+
+function renderMD(text) {
+  if (!text) return null;
+  const lines = text.split("\n");
+  const elements = [];
+  let listItems = [];
+  const flushList = (key) => {
+    if (listItems.length) {
+      elements.push(
+        <ul key={`ul-${key}`} className="list-disc list-inside space-y-1 mb-3 ml-1 text-slate-200 text-sm">
+          {listItems.map((item, idx) => <li key={idx}>{renderInline(item)}</li>)}
+        </ul>
+      );
+      listItems = [];
+    }
+  };
+  lines.forEach((line, idx) => {
+    const t = line.trim();
+    if (t.startsWith("### ")) {
+      flushList(idx);
+      elements.push(<h3 key={idx} className="text-sm font-bold text-amber-300 mt-4 mb-1 uppercase tracking-wide">{t.slice(4)}</h3>);
+    } else if (t.startsWith("## ")) {
+      flushList(idx);
+      elements.push(<h2 key={idx} className="text-lg font-bold text-emerald-300 mt-5 mb-2 pb-1 border-b border-white/10">{t.slice(3)}</h2>);
+    } else if (t.startsWith("- ")) {
+      listItems.push(t.slice(2));
+    } else if (t === "") {
+      flushList(idx);
+    } else {
+      flushList(idx);
+      elements.push(<p key={idx} className="text-sm text-slate-200 mb-2 leading-relaxed">{renderInline(t)}</p>);
+    }
+  });
+  flushList("end");
+  return elements;
+}
+
+export default function PlaneacionGenerator() {
+  const [asignatura, setAsignatura] = useState("");
+  const [grado, setGrado] = useState("");
+  const [horasSemana, setHorasSemana] = useState(1);
+  const [duracion, setDuracion] = useState(60);
+  const [temas, setTemas] = useState([{ value: "", custom: "" }]);
+  const [recursos, setRecursos] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [planes, setPlanes] = useState([]);
+  const [copiedIndex, setCopiedIndex] = useState(null);
+
+  const modulosDisponibles = asignatura && grado ? CONTENIDOS[asignatura][grado] : [];
+  const numSesiones = Math.min(Math.max(parseInt(horasSemana, 10) || 0, 0), 10);
+
+  const resizeTemas = (n) => {
+    setTemas((prev) => {
+      const arr = [...prev];
+      while (arr.length < n) arr.push({ value: "", custom: "" });
+      arr.length = Math.max(n, 0);
+      return arr;
+    });
+  };
+
+  const handleAsignaturaChange = (val) => {
+    setAsignatura(val);
+    setGrado("");
+    resizeTemas(numSesiones);
+    setTemas((prev) => prev.map(() => ({ value: "", custom: "" })));
+    setPlanes([]); setError("");
+  };
+  const handleGradoChange = (val) => {
+    setGrado(val);
+    setTemas((prev) => prev.map(() => ({ value: "", custom: "" })));
+    setPlanes([]); setError("");
+  };
+  const handleHorasChange = (val) => {
+    setHorasSemana(val);
+    const n = Math.min(Math.max(parseInt(val, 10) || 0, 0), 10);
+    resizeTemas(n);
+    setPlanes([]); setError("");
+  };
+  const updateTema = (i, field, val) => {
+    setTemas((prev) => prev.map((t, idx) => (idx === i ? { ...t, [field]: val } : t)));
+  };
+
+  const temasCompletos = numSesiones > 0 && temas.slice(0, numSesiones).every(
+    (t) => (t.value && t.value !== OTRO) || (t.value === OTRO && t.custom.trim())
+  );
+  const puedeGenerar = asignatura && grado && numSesiones > 0 && Number(duracion) > 0 && temasCompletos && !loading;
+
+  const callDia = async (i, temaFinal) => {
+    const userPrompt = `Construye la planeación de clase para el Día ${i + 1} de ${numSesiones} sesiones semanales de esta asignatura.
+- Asignatura: ${asignatura}
+- Grado: ${grado}°
+- Tema específico de esta clase: ${temaFinal}
+- Duración de esta clase: ${duracion} minutos (definida libremente por el docente)
+- Horas semanales totales dedicadas a esta asignatura: ${horasSemana} (definidas libremente por el docente)
+- Recursos que el docente planea utilizar (úsalos como contexto si aplica, no los listes en sección aparte): ${recursos || "el libro de texto y el tablero"}`;
+
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
+        messages: [{ role: "user", content: userPrompt }],
+      }),
+    });
+    if (!response.ok) throw new Error("network");
+    const data = await response.json();
+    const text = (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("\n").trim();
+    if (!text) throw new Error("empty");
+    return text;
+  };
+
+  const handleGenerate = async () => {
+    setLoading(true); setError(""); setPlanes([]); setCopiedIndex(null);
+    const total = numSesiones;
+    const results = await Promise.allSettled(
+      temas.slice(0, total).map((t, i) => callDia(i, t.value === OTRO ? t.custom : t.value))
+    );
+    const newPlanes = results.map((r, i) => {
+      const temaFinal = temas[i].value === OTRO ? temas[i].custom : temas[i].value;
+      return r.status === "fulfilled"
+        ? { dia: i + 1, tema: temaFinal, content: r.value }
+        : { dia: i + 1, tema: temaFinal, error: true };
+    });
+    setPlanes(newPlanes);
+    if (results.some((r) => r.status === "rejected")) {
+      setError("Una o más planeaciones no se pudieron generar. Usa 'Reintentar' en esa tarjeta.");
+    }
+    setLoading(false);
+  };
+
+  const handleRetryDia = async (i) => {
+    setPlanes((prev) => prev.map((p, idx) => (idx === i ? { ...p, retrying: true } : p)));
+    const temaFinal = temas[i].value === OTRO ? temas[i].custom : temas[i].value;
+    try {
+      const content = await callDia(i, temaFinal);
+      setPlanes((prev) => prev.map((p, idx) => (idx === i ? { dia: i + 1, tema: temaFinal, content } : p)));
+    } catch {
+      setPlanes((prev) => prev.map((p, idx) => (idx === i ? { dia: i + 1, tema: temaFinal, error: true } : p)));
+    }
+  };
+
+  const handleCopyDia = async (i) => {
+    const p = planes[i];
+    const fullText = `${p.content}\n\n## Recursos sugeridos por el docente\n${recursos || "No se especificaron recursos adicionales; se sugiere el libro de texto y el tablero."}`;
+    try {
+      await navigator.clipboard.writeText(fullText);
+      setCopiedIndex(i);
+      setTimeout(() => setCopiedIndex(null), 2000);
+    } catch {
+      setError("No se pudo copiar automáticamente. Selecciona y copia el texto manualmente.");
+    }
+  };
+
+  const handleLimpiar = () => {
+    setAsignatura("");
+    setGrado("");
+    setHorasSemana(1);
+    setDuracion(60);
+    setTemas([{ value: "", custom: "" }]);
+    setRecursos("");
+    setPlanes([]); setError(""); setCopiedIndex(null);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 text-white p-4 sm:p-6">
+      <div className="max-w-2xl mx-auto">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl p-2 shadow-lg shadow-orange-500/20">
+            <Sparkles className="w-5 h-5 text-white" />
+          </div>
+          <h1 className="text-xl sm:text-2xl font-bold">Generador de Planeaciones</h1>
+        </div>
+        <p className="text-slate-400 text-sm mb-6 ml-1">Santillana Compartir · Metodología activa · Taxonomía de Bloom · Evaluación en Pleno</p>
+
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-5 space-y-4 backdrop-blur-sm">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-slate-300 mb-1 block">1. Asignatura</label>
+              <select
+                value={asignatura}
+                onChange={(e) => handleAsignaturaChange(e.target.value)}
+                className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              >
+                <option value="">Selecciona</option>
+                {Object.keys(CONTENIDOS).map((a) => <option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-300 mb-1 block">2. Grado</label>
+              <select
+                value={grado}
+                onChange={(e) => handleGradoChange(e.target.value)}
+                disabled={!asignatura}
+                className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 disabled:opacity-40"
+              >
+                <option value="">Selecciona</option>
+                {[1, 2, 3, 4, 5].map((g) => <option key={g} value={g}>{g}°</option>)}
+              </select>
+            </div>
+          </div>
+
+          {asignatura && grado && (
+            <>
+              <div className="grid grid-cols-2 gap-3 pt-2 border-t border-white/10">
+                <div>
+                  <label className="text-xs font-medium text-slate-300 mb-1 block flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" /> 3. Horas/semana (tú decides)
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={horasSemana}
+                    onChange={(e) => handleHorasChange(e.target.value)}
+                    className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-300 mb-1 block">4. Duración por clase (min, tú decides)</label>
+                  <input
+                    type="number"
+                    min="10"
+                    max="240"
+                    step="5"
+                    value={duracion}
+                    onChange={(e) => setDuracion(e.target.value)}
+                    className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-slate-500 -mt-2">Se generará una planeación por cada hora semanal (máximo 10 por solicitud).</p>
+
+              {numSesiones > 0 && (
+                <div className="space-y-3">
+                  <p className="text-xs font-medium text-slate-300">5. Tema para cada clase de la semana</p>
+                  {temas.slice(0, numSesiones).map((t, i) => (
+                    <div key={i} className="bg-slate-800/50 rounded-lg p-2.5">
+                      <label className="text-xs text-emerald-300 font-semibold mb-1 block">Día {i + 1}</label>
+                      <select
+                        value={t.value}
+                        onChange={(e) => updateTema(i, "value", e.target.value)}
+                        className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                      >
+                        <option value="">Selecciona un tema</option>
+                        {modulosDisponibles.map((m) => (
+                          <optgroup key={m.titulo} label={m.titulo}>
+                            {m.subtemas.map((s) => <option key={s} value={s}>{s}</option>)}
+                          </optgroup>
+                        ))}
+                        <option value={OTRO}>Otro tema (escribir)</option>
+                      </select>
+                      {t.value === OTRO && (
+                        <input
+                          type="text"
+                          value={t.custom}
+                          onChange={(e) => updateTema(i, "custom", e.target.value)}
+                          placeholder="Escribe el tema específico de esta clase"
+                          className="w-full mt-2 bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 placeholder:text-slate-500"
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div>
+                <label className="text-xs font-medium text-slate-300 mb-1 block flex items-center gap-1">
+                  <Wrench className="w-3.5 h-3.5" /> 6. Recursos que piensas utilizar
+                </label>
+                <textarea
+                  value={recursos}
+                  onChange={(e) => setRecursos(e.target.value)}
+                  placeholder="Ej: libro Santillana Compartir, video corto, material concreto, guía impresa, plataforma Pleno..."
+                  rows={2}
+                  className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 placeholder:text-slate-500 resize-none"
+                />
+              </div>
+            </>
+          )}
+
+          <div className="flex gap-2 pt-1">
+            <button
+              onClick={handleGenerate}
+              disabled={!puedeGenerar}
+              className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-500/20"
+            >
+              {loading ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Generando {numSesiones > 1 ? `${numSesiones} planeaciones` : "planeación"}...</>
+              ) : (
+                <><Sparkles className="w-4 h-4" /> Generar {numSesiones > 1 ? `${numSesiones} planeaciones` : "planeación"}</>
+              )}
+            </button>
+            <button
+              onClick={handleLimpiar}
+              className="bg-white/10 hover:bg-white/20 text-white font-medium px-4 rounded-xl flex items-center justify-center gap-1.5 transition text-sm"
+            >
+              <RotateCcw className="w-4 h-4" /> Limpiar
+            </button>
+          </div>
+        </div>
+
+        {error && (
+          <div className="mt-4 bg-red-500/10 border border-red-400/30 rounded-xl p-3 flex items-start gap-2 text-sm text-red-300">
+            <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        {planes.map((p, i) => (
+          <div key={i} className="mt-5 bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-5 backdrop-blur-sm">
+            <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+              <span className="text-sm font-bold text-white bg-emerald-500/20 border border-emerald-400/30 rounded-full px-3 py-1">
+                Día {p.dia} {p.tema ? `— ${p.tema}` : ""}
+              </span>
+              {!p.error && !p.retrying && (
+                <button onClick={() => handleCopyDia(i)} className="flex items-center gap-1 text-xs bg-white/10 hover:bg-white/20 rounded-lg px-2.5 py-1.5 transition">
+                  {copiedIndex === i ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copiedIndex === i ? "Copiado" : "Copiar"}
+                </button>
+              )}
+            </div>
+
+            {p.retrying && (
+              <div className="flex items-center gap-2 text-sm text-slate-400 py-4">
+                <Loader2 className="w-4 h-4 animate-spin" /> Reintentando...
+              </div>
+            )}
+
+            {p.error && !p.retrying && (
+              <div className="flex items-center justify-between bg-red-500/10 border border-red-400/30 rounded-lg p-3">
+                <span className="text-sm text-red-300">No se pudo generar esta planeación.</span>
+                <button onClick={() => handleRetryDia(i)} className="flex items-center gap-1 text-xs bg-white/10 hover:bg-white/20 rounded-lg px-2.5 py-1.5 transition">
+                  <RefreshCw className="w-3.5 h-3.5" /> Reintentar
+                </button>
+              </div>
+            )}
+
+            {!p.error && !p.retrying && (
+              <>
+                <div>{renderMD(p.content)}</div>
+                <div className="mt-3 pt-3 border-t border-white/10">
+                  <h2 className="text-lg font-bold text-emerald-300 mb-2">Recursos sugeridos por el docente</h2>
+                  <p className="text-sm text-slate-200 leading-relaxed">
+                    {recursos || "No se especificaron recursos adicionales; se sugiere el libro de texto y el tablero."}
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
