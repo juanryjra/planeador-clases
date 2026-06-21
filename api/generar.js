@@ -13,7 +13,7 @@ module.exports = async (req, res) => {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
     const body = {
       contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-      generationConfig: { maxOutputTokens: 2048, temperature: 0.7 },
+     generationConfig: { maxOutputTokens: 4096, temperature: 0.4 },
     };
     if (systemPrompt) body.systemInstruction = { parts: [{ text: systemPrompt }] };
 
